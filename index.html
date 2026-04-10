@@ -1,165 +1,265 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Clicker</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>God Mode Clicker</title>
 
 <style>
 body {
-  text-align:center;
-  font-family:Arial;
-  background:#0f0f0f;
+  margin:0;
+  font-family: Arial;
+  background: radial-gradient(circle at top, #0a0a0a, #000);
   color:white;
+  text-align:center;
   overflow:hidden;
 }
 
-button {
-  font-size:18px;
-  padding:12px;
-  margin:8px;
-  border-radius:10px;
+.title {
+  font-size:26px;
+  margin-top:15px;
+  font-weight:bold;
+  text-shadow:0 0 10px #fff, 0 0 20px #00f;
 }
 
-.coin {
-  font-size:60px;
-  transition: transform 0.1s;
+#coin { font-size:90px; margin:10px; }
+
+.panel button {
+  padding:10px;
+  margin:4px;
+  font-size:12px;
+  border-radius:10px;
+  border:none;
 }
 
 .float {
   position:absolute;
-  font-size:20px;
   animation: floatUp 1s linear forwards;
 }
 
 @keyframes floatUp {
   from { transform: translateY(0); opacity:1; }
-  to { transform: translateY(-80px); opacity:0; }
+  to { transform: translateY(-120px); opacity:0; }
+}
+
+#bossBar {
+  width:80%;
+  height:10px;
+  background:#222;
+  margin:10px auto;
+  border-radius:10px;
+}
+
+#bossHP {
+  height:10px;
+  background:red;
+  width:100%;
 }
 </style>
 </head>
 
 <body>
 
-<h1>🔥 Ultimate Clicker</h1>
+<div class="title">👑 Matthew’s Idle Clicker — GOD MODE</div>
 
-<div class="coin" id="coin">💰</div>
+<div id="coin">💰</div>
 
 <h2 id="score">0</h2>
+<h3 id="gems">💎 0</h3>
 
-<button onclick="clickCoin()">TAP</button>
+<div class="panel">
+<button onclick="tap()">TAP</button>
+<button onclick="slot()">🎰 SLOT</button>
+<button onclick="bossHit()">🔥 BOSS</button>
+</div>
 
-<br>
+<div class="panel">
+<button onclick="upgrade('click')">Click+</button>
+<button onclick="upgrade('multi')">Multi+</button>
+<button onclick="upgrade('crit')">Crit+</button>
+<button onclick="upgrade('auto')">Auto+</button>
+</div>
 
-<button onclick="buyUpgrade()">⬆️ Upgrade (<span id="cost">10</span>)</button>
+<div class="panel">
+<button onclick="prestige()">✨ REBIRTH</button>
+<button onclick="theme()">🎨 Theme</button>
+</div>
 
-<button onclick="buyAuto()">🤖 Auto Clicker (50)</button>
-
-<button onclick="scratch()">🎰 Scratch</button>
-
-<button onclick="prestige()">✨ Prestige</button>
+<div id="bossBar"><div id="bossHP"></div></div>
 
 <p id="stats"></p>
+<p id="achievements"></p>
+<p id="leader"></p>
 
 <script>
-let score = 0;
-let perClick = 1;
-let cost = 10;
-let auto = 0;
-let prestigeLevel = 0;
-let multiplier = 1;
 
-function save() {
-  localStorage.setItem("save", JSON.stringify({score, perClick, cost, auto, prestigeLevel, multiplier}));
+// ---------------- SAVE ----------------
+let S = JSON.parse(localStorage.getItem("GODMODE")) || {
+  score:0,gems:0,
+  click:1,multi:1,crit:0.1,auto:0,
+  rebirth:0,
+  themes:0
+};
+
+let boss = {hp:1000,max:1000,active:false};
+
+// ---------------- FX ----------------
+function float(t){
+  let e=document.createElement("div");
+  e.className="float";
+  e.innerText=t;
+  e.style.left=(window.innerWidth/2+(Math.random()*60-30))+"px";
+  e.style.top="200px";
+  document.body.appendChild(e);
+  setTimeout(()=>e.remove(),800);
 }
 
-function load() {
-  let s = JSON.parse(localStorage.getItem("save"));
-  if (s) {
-    score = s.score;
-    perClick = s.perClick;
-    cost = s.cost;
-    auto = s.auto;
-    prestigeLevel = s.prestigeLevel;
-    multiplier = s.multiplier;
+// ---------------- CORE CLICK ----------------
+function tap(){
+  let gain = S.click * S.multi;
+
+  if(Math.random() < S.crit){
+    gain *= 5;
+    float("💥 CRIT "+gain);
+  } else {
+    float("+"+gain);
   }
+
+  S.score += gain;
+
+  if(Math.random()<0.02){
+    S.gems++;
+    float("💎 GEM!");
+  }
+
+  save(); update();
 }
 
-function update() {
-  document.getElementById("score").innerText = Math.floor(score);
-  document.getElementById("cost").innerText = cost;
-  document.getElementById("stats").innerText =
-    "Auto: " + auto + " | Prestige: " + prestigeLevel + " | x" + multiplier;
+// ---------------- SLOT MACHINE ----------------
+function slot(){
+  let r = Math.random();
 
+  if(r>0.97){
+    S.gems+=10;
+    float("🟣 JACKPOT +10 GEMS");
+  }
+  else if(r>0.7){
+    S.score+=1000;
+    float("🟢 WIN +1000");
+  }
+  else {
+    S.score-=100;
+    float("🔴 LOSE -100");
+  }
+
+  save(); update();
+}
+
+// ---------------- BOSS ----------------
+function bossStart(){
+  boss.hp = boss.max;
+  boss.active = true;
+}
+
+function bossHit(){
+  if(!boss.active) bossStart();
+
+  let dmg = S.click * S.multi * 2;
+  boss.hp -= dmg;
+
+  float("⚔️ "+dmg);
+
+  if(boss.hp <= 0){
+    S.gems += 5;
+    S.score += 2000;
+    float("🏆 BOSS DOWN!");
+    boss.active = false;
+  }
+
+  update();
+}
+
+// ---------------- UPGRADE SYSTEM ----------------
+function upgrade(type){
+  let cost = 100;
+
+  if(S.score < cost) return;
+
+  S.score -= cost;
+
+  if(type==="click") S.click++;
+  if(type==="multi") S.multi+=0.5;
+  if(type==="crit") S.crit+=0.02;
+  if(type==="auto") S.auto++;
+
+  float("⬆️ UPGRADED");
+  save(); update();
+}
+
+// ---------------- PRESTIGE ----------------
+function prestige(){
+  if(S.score < 5000) return;
+
+  S.score=0;
+  S.click=1;
+  S.auto=0;
+  S.multi += 1;
+  S.rebirth++;
+
+  float("✨ REBIRTH COMPLETE");
+  save(); update();
+}
+
+// ---------------- THEMES ----------------
+function theme(){
+  S.themes++;
+  document.body.style.background =
+    S.themes%2 ?
+    "radial-gradient(circle at top,#111,#000)" :
+    "radial-gradient(circle at top,#001,#000)";
   save();
 }
 
-function floatText(text) {
-  let el = document.createElement("div");
-  el.className = "float";
-  el.innerText = text;
-  el.style.left = (window.innerWidth/2 + Math.random()*40-20) + "px";
-  el.style.top = "200px";
-  document.body.appendChild(el);
+// ---------------- LOOP ----------------
+setInterval(()=>{
+  S.score += S.auto * S.multi;
 
-  setTimeout(() => el.remove(), 1000);
-}
-
-function clickCoin() {
-  score += perClick * multiplier;
-  floatText("+" + (perClick * multiplier));
-  update();
-}
-
-function buyUpgrade() {
-  if (score >= cost) {
-    score -= cost;
-    perClick++;
-    cost = Math.floor(cost * 1.4);
-    update();
-  }
-}
-
-function buyAuto() {
-  if (score >= 50) {
-    score -= 50;
-    auto++;
-    update();
-  }
-}
-
-function scratch() {
-  let win = Math.random();
-
-  if (win > 0.7) {
-    let reward = Math.floor(Math.random()*100)+50;
-    score += reward;
-    floatText("WIN +" + reward);
+  if(boss.active){
+    document.getElementById("bossHP").style.width =
+      (boss.hp/boss.max*100)+"%";
   } else {
-    floatText("TRY AGAIN");
+    document.getElementById("bossHP").style.width="0%";
   }
 
   update();
+},1000);
+
+// ---------------- UI ----------------
+function update(){
+  document.getElementById("score").innerText = Math.floor(S.score);
+  document.getElementById("gems").innerText = "💎 "+S.gems;
+
+  document.getElementById("stats").innerText =
+    `Click:${S.click} Multi:${S.multi} Crit:${(S.crit*100).toFixed(1)}% Auto:${S.auto} Rebirth:${S.rebirth}`;
+
+  // fake leaderboard (local)
+  document.getElementById("leader").innerText =
+    "🏆 Rank: #" + Math.max(1, 1000 - Math.floor(S.score/1000));
+
+  let ach="";
+  if(S.score>10000) ach+="💰 Rich ";
+  if(S.gems>20) ach+="💎 Collector ";
+  if(S.rebirth>3) ach+="👑 Ascended ";
+
+  document.getElementById("achievements").innerText = ach;
 }
 
-function prestige() {
-  if (score >= 1000) {
-    score = 0;
-    perClick = 1;
-    cost = 10;
-    auto = 0;
-    prestigeLevel++;
-    multiplier += 0.5;
-    update();
-  }
+// ---------------- SAVE ----------------
+function save(){
+  localStorage.setItem("GODMODE", JSON.stringify(S));
 }
 
-setInterval(() => {
-  score += auto * multiplier;
-  update();
-}, 1000);
-
-load();
 update();
+
 </script>
 
 </body>
