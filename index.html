@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clicker Game</title>
+</head>
+
+<body style="text-align:center;font-family:Arial;background:#111;color:white;margin-top:50px;">
+
+<h1>🔥 Clicker Game</h1>
+
+<h2 id="score">0</h2>
+<p>Coins</p>
+
+<button onclick="clickCoin()" style="font-size:20px;padding:15px;">💰 TAP</button>
+
+<br><br>
+
+<button onclick="buyUpgrade()" style="padding:10px;">
+⬆️ Upgrade (Cost: <span id="cost">10</span>)
+</button>
+
+<button onclick="prestige()" style="padding:10px;">
+✨ Prestige
+</button>
+
+<p id="mult">Multiplier: x1</p>
+
+<script>
+let score = 0;
+let perClick = 1;
+let cost = 10;
+let multiplier = 1;
+
+function update() {
+  document.getElementById("score").innerText = Math.floor(score);
+  document.getElementById("cost").innerText = cost;
+  document.getElementById("mult").innerText = "Multiplier: x" + multiplier;
+
+  localStorage.setItem("save", JSON.stringify({score, perClick, cost, multiplier}));
+}
+
+function clickCoin() {
+  score += perClick * multiplier;
+  update();
+}
+
+function buyUpgrade() {
+  if (score >= cost) {
+    score -= cost;
+    perClick++;
+    cost = Math.floor(cost * 1.5);
+    update();
+  }
+}
+
+function prestige() {
+  if (score >= 1000) {
+    score = 0;
+    perClick = 1;
+    cost = 10;
+    multiplier += 0.5;
+    update();
+  }
+}
+
+// load save
+let save = JSON.parse(localStorage.getItem("save"));
+if (save) {
+  score = save.score;
+  perClick = save.perClick;
+  cost = save.cost;
+  multiplier = save.multiplier;
+}
+
+update();
+</script>
+
+</body>
+</html>
