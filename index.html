@@ -2,46 +2,111 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Clicker Game</title>
+<title>Ultimate Clicker</title>
+
+<style>
+body {
+  text-align:center;
+  font-family:Arial;
+  background:#0f0f0f;
+  color:white;
+  overflow:hidden;
+}
+
+button {
+  font-size:18px;
+  padding:12px;
+  margin:8px;
+  border-radius:10px;
+}
+
+.coin {
+  font-size:60px;
+  transition: transform 0.1s;
+}
+
+.float {
+  position:absolute;
+  font-size:20px;
+  animation: floatUp 1s linear forwards;
+}
+
+@keyframes floatUp {
+  from { transform: translateY(0); opacity:1; }
+  to { transform: translateY(-80px); opacity:0; }
+}
+</style>
 </head>
 
-<body style="text-align:center;font-family:Arial;background:#111;color:white;margin-top:50px;">
+<body>
 
-<h1>🔥 Clicker Game</h1>
+<h1>🔥 Ultimate Clicker</h1>
+
+<div class="coin" id="coin">💰</div>
 
 <h2 id="score">0</h2>
-<p>Coins</p>
 
-<button onclick="clickCoin()" style="font-size:20px;padding:15px;">💰 TAP</button>
+<button onclick="clickCoin()">TAP</button>
 
-<br><br>
+<br>
 
-<button onclick="buyUpgrade()" style="padding:10px;">
-⬆️ Upgrade (Cost: <span id="cost">10</span>)
-</button>
+<button onclick="buyUpgrade()">⬆️ Upgrade (<span id="cost">10</span>)</button>
 
-<button onclick="prestige()" style="padding:10px;">
-✨ Prestige
-</button>
+<button onclick="buyAuto()">🤖 Auto Clicker (50)</button>
 
-<p id="mult">Multiplier: x1</p>
+<button onclick="scratch()">🎰 Scratch</button>
+
+<button onclick="prestige()">✨ Prestige</button>
+
+<p id="stats"></p>
 
 <script>
 let score = 0;
 let perClick = 1;
 let cost = 10;
+let auto = 0;
+let prestigeLevel = 0;
 let multiplier = 1;
+
+function save() {
+  localStorage.setItem("save", JSON.stringify({score, perClick, cost, auto, prestigeLevel, multiplier}));
+}
+
+function load() {
+  let s = JSON.parse(localStorage.getItem("save"));
+  if (s) {
+    score = s.score;
+    perClick = s.perClick;
+    cost = s.cost;
+    auto = s.auto;
+    prestigeLevel = s.prestigeLevel;
+    multiplier = s.multiplier;
+  }
+}
 
 function update() {
   document.getElementById("score").innerText = Math.floor(score);
   document.getElementById("cost").innerText = cost;
-  document.getElementById("mult").innerText = "Multiplier: x" + multiplier;
+  document.getElementById("stats").innerText =
+    "Auto: " + auto + " | Prestige: " + prestigeLevel + " | x" + multiplier;
 
-  localStorage.setItem("save", JSON.stringify({score, perClick, cost, multiplier}));
+  save();
+}
+
+function floatText(text) {
+  let el = document.createElement("div");
+  el.className = "float";
+  el.innerText = text;
+  el.style.left = (window.innerWidth/2 + Math.random()*40-20) + "px";
+  el.style.top = "200px";
+  document.body.appendChild(el);
+
+  setTimeout(() => el.remove(), 1000);
 }
 
 function clickCoin() {
   score += perClick * multiplier;
+  floatText("+" + (perClick * multiplier));
   update();
 }
 
@@ -49,9 +114,31 @@ function buyUpgrade() {
   if (score >= cost) {
     score -= cost;
     perClick++;
-    cost = Math.floor(cost * 1.5);
+    cost = Math.floor(cost * 1.4);
     update();
   }
+}
+
+function buyAuto() {
+  if (score >= 50) {
+    score -= 50;
+    auto++;
+    update();
+  }
+}
+
+function scratch() {
+  let win = Math.random();
+
+  if (win > 0.7) {
+    let reward = Math.floor(Math.random()*100)+50;
+    score += reward;
+    floatText("WIN +" + reward);
+  } else {
+    floatText("TRY AGAIN");
+  }
+
+  update();
 }
 
 function prestige() {
@@ -59,20 +146,19 @@ function prestige() {
     score = 0;
     perClick = 1;
     cost = 10;
+    auto = 0;
+    prestigeLevel++;
     multiplier += 0.5;
     update();
   }
 }
 
-// load save
-let save = JSON.parse(localStorage.getItem("save"));
-if (save) {
-  score = save.score;
-  perClick = save.perClick;
-  cost = save.cost;
-  multiplier = save.multiplier;
-}
+setInterval(() => {
+  score += auto * multiplier;
+  update();
+}, 1000);
 
+load();
 update();
 </script>
 
