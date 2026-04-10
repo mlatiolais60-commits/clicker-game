@@ -9,13 +9,13 @@
 
 body {
   margin:0;
-  font-family:Orbitron, sans-serif;
+  font-family:Orbitron;
   background:black;
   color:white;
   overflow:hidden;
 }
 
-/* 🌌 BACKGROUND GLOW */
+/* 🌌 animated bg */
 body::before {
   content:"";
   position:absolute;
@@ -23,16 +23,16 @@ body::before {
   height:100%;
   background:
     radial-gradient(circle at 30% 30%, rgba(0,255,255,0.15), transparent 40%),
-    radial-gradient(circle at 70% 70%, rgba(255,0,150,0.12), transparent 45%);
-  animation: bg 6s infinite alternate;
+    radial-gradient(circle at 70% 70%, rgba(255,0,150,0.12), transparent 40%);
+  animation:bg 6s infinite alternate;
 }
 
 @keyframes bg {
-  from { transform:scale(1); }
-  to { transform:scale(1.2); }
+  from{transform:scale(1);}
+  to{transform:scale(1.2);}
 }
 
-/* 🎬 INTRO SCREEN */
+/* 🎬 intro */
 #intro {
   position:absolute;
   width:100%;
@@ -44,37 +44,21 @@ body::before {
   z-index:10;
 }
 
-/* 🧠 TITLE LETTERS */
 .letter {
   display:inline-block;
-  font-size:28px;
+  font-size:26px;
   opacity:0;
-  transform:translateY(-60px) rotateX(90deg);
-  animation: drop 0.6s forwards;
+  transform:translateY(-60px);
+  animation:drop 0.5s forwards;
   text-shadow:0 0 15px cyan;
 }
 
 @keyframes drop {
-  to {
-    opacity:1;
-    transform:translateY(0) rotateX(0);
-  }
+  to{opacity:1;transform:translateY(0);}
 }
 
-/* 👆 TAP TO START */
-#tap {
-  margin-top:20px;
-  opacity:0;
-  animation: fadeIn 2s forwards;
-  animation-delay:2s;
-}
-
-@keyframes fadeIn {
-  to { opacity:1; }
-}
-
-/* 🎮 GAME */
-.screen {
+/* 🎮 game */
+#game {
   display:none;
   height:100vh;
   flex-direction:column;
@@ -82,49 +66,54 @@ body::before {
   align-items:center;
 }
 
-.active { display:flex; }
+.active {display:flex;}
 
-/* 💰 COIN */
 #coin {
   font-size:110px;
   filter:drop-shadow(0 0 15px gold);
   transition:0.1s;
 }
-#coin:active { transform:scale(0.9); }
+#coin:active {transform:scale(0.9);}
 
-/* 🔘 BUTTONS */
+/* 🔘 buttons */
 button {
   padding:12px 14px;
   margin:6px;
   border:none;
-  border-radius:14px;
+  border-radius:12px;
   color:white;
   background:linear-gradient(145deg,#2b2b2b,#111);
   box-shadow:0 6px 20px rgba(0,0,0,0.6);
   transition:0.1s;
 }
-button:active { transform:translateY(4px); }
+button:active {transform:translateY(3px);}
 
-/* 💥 FLOAT */
+/* 📦 panels */
+.panel {
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  max-width:420px;
+}
+
+/* 💥 float */
 .float {
   position:absolute;
-  animation: floatUp 1s forwards;
+  animation:floatUp 1s forwards;
 }
 @keyframes floatUp {
-  from {opacity:1;transform:translateY(0);}
-  to {opacity:0;transform:translateY(-120px);}
+  from{opacity:1;transform:translateY(0);}
+  to{opacity:0;transform:translateY(-120px);}
 }
 
-/* 🔥 SHAKE */
+/* 📳 shake */
+.shake {animation:shake 0.2s;}
 @keyframes shake {
   0%{transform:translate(0);}
-  25%{transform:translate(-5px,5px);}
-  50%{transform:translate(5px,-5px);}
-  75%{transform:translate(-5px,5px);}
+  25%{transform:translate(-4px,4px);}
+  50%{transform:translate(4px,-4px);}
   100%{transform:translate(0);}
 }
-
-.shake { animation:shake 0.2s; }
 </style>
 </head>
 
@@ -133,69 +122,70 @@ button:active { transform:translateY(4px); }
 <!-- 🎬 INTRO -->
 <div id="intro">
   <div id="title"></div>
-  <div id="tap">👆 Tap anywhere to play</div>
+  <p>👆 Tap anywhere to play</p>
 </div>
 
 <!-- 🎮 GAME -->
-<div id="game" class="screen">
-  <div>👑 Matthew’s Clicker</div>
+<div id="game">
+
+  <h3>👑 Matthew's Idle Clicker</h3>
 
   <div id="coin">💰</div>
   <h2 id="score">0</h2>
+  <h4 id="stats"></h4>
 
-  <button onclick="tap()">TAP</button>
-  <button onclick="crit()">CRIT</button>
-  <button onclick="boss()">BOSS</button>
+  <!-- 🎮 MAIN ACTIONS -->
+  <div class="panel">
+    <button onclick="tap()">TAP</button>
+    <button onclick="crit()">CRIT</button>
+    <button onclick="slot()">SLOT</button>
+    <button onclick="boss()">BOSS</button>
+  </div>
+
+  <!-- 🛒 UPGRADES -->
+  <div class="panel">
+    <button onclick="buy('click')">Click+</button>
+    <button onclick="buy('multi')">Multi+</button>
+    <button onclick="buy('auto')">Auto+</button>
+    <button onclick="rebirth()">REBIRTH</button>
+  </div>
+
 </div>
 
 <script>
 
-let S = JSON.parse(localStorage.getItem("ULTIMATE")) || {
+/* 🧠 STATE */
+let S = JSON.parse(localStorage.getItem("FIXED_GAME")) || {
   score:0,
   click:1,
   multi:1,
   auto:0
 };
 
-/* 🔊 SOUND ENGINE */
-function sound(type){
-  let ctx = new (window.AudioContext || window.webkitAudioContext)();
-  let o = ctx.createOscillator();
-  o.connect(ctx.destination);
-
-  if(type==="click") o.frequency.value=300;
-  if(type==="crit") o.frequency.value=600;
-  if(type==="boss") o.frequency.value=120;
-
-  o.start();
-  o.stop(ctx.currentTime+0.1);
-}
-
-/* 🎬 CINEMATIC TITLE */
-let name="MATTHEW'S IDLE CLICKER GAME";
+/* 🎬 TITLE BUILD */
+let name="MATTHEW'S IDLE CLICKER";
 let i=0;
 let title=document.getElementById("title");
 
-function buildTitle(){
+function build(){
   if(i<name.length){
-    let span=document.createElement("span");
-    span.className="letter";
-    span.style.animationDelay=(i*0.08)+"s";
-    span.innerText=name[i];
-    title.appendChild(span);
+    let s=document.createElement("span");
+    s.className="letter";
+    s.style.animationDelay=(i*0.05)+"s";
+    s.innerText=name[i];
+    title.appendChild(s);
     i++;
-    setTimeout(buildTitle,80);
+    setTimeout(build,60);
   }
 }
-buildTitle();
+build();
 
-/* 👆 START GAME */
-document.body.addEventListener("click", start);
-
+/* 👆 START */
+document.body.onclick=start;
 function start(){
   document.getElementById("intro").style.display="none";
   document.getElementById("game").classList.add("active");
-  document.body.removeEventListener("click", start);
+  document.body.onclick=null;
 }
 
 /* 💥 FLOAT */
@@ -203,7 +193,7 @@ function float(t){
   let e=document.createElement("div");
   e.className="float";
   e.innerText=t;
-  e.style.left=(window.innerWidth/2)+"px";
+  e.style.left=window.innerWidth/2+"px";
   e.style.top="200px";
   document.body.appendChild(e);
   setTimeout(()=>e.remove(),900);
@@ -211,53 +201,86 @@ function float(t){
 
 /* 🎮 TAP */
 function tap(){
-  let gain=S.click*S.multi;
-  S.score+=gain;
-  float("+"+gain);
-  sound("click");
+  let g=S.click*S.multi;
+  S.score+=g;
+  float("+"+g);
   save(); update();
 }
 
 /* 💥 CRIT */
 function crit(){
-  let gain=S.click*S.multi*5;
-  S.score+=gain;
-  float("💥 CRIT "+gain);
-  sound("crit");
-  screenShake();
+  let g=S.click*S.multi*5;
+  S.score+=g;
+  float("💥 "+g);
+  shake();
+  save(); update();
+}
+
+/* 🎰 SLOT */
+function slot(){
+  let r=Math.random();
+  if(r>0.9){S.score+=1000;float("JACKPOT!");}
+  else if(r>0.5){S.score+=200;float("+200");}
+  else {S.score-=100;float("-100");}
   save(); update();
 }
 
 /* 🔥 BOSS */
 function boss(){
-  let gain=S.click*S.multi*10;
-  S.score+=gain;
-  float("BOSS "+gain);
-  sound("boss");
-  screenShake();
+  let g=S.click*S.multi*10;
+  S.score+=g;
+  float("BOSS "+g);
+  shake();
+  save(); update();
+}
+
+/* 🛒 BUY */
+function buy(t){
+  if(S.score<100) return;
+  S.score-=100;
+
+  if(t==="click") S.click++;
+  if(t==="multi") S.multi+=0.5;
+  if(t==="auto") S.auto++;
+
+  float("UPGRADED");
+  save(); update();
+}
+
+/* ✨ REBIRTH */
+function rebirth(){
+  if(S.score<5000) return;
+  S.score=0;
+  S.click=1;
+  S.multi+=1;
+  S.auto=0;
+  float("REBIRTH!");
   save(); update();
 }
 
 /* 📳 SHAKE */
-function screenShake(){
+function shake(){
   document.body.classList.add("shake");
   setTimeout(()=>document.body.classList.remove("shake"),200);
 }
 
-/* 💾 SAVE */
-function save(){
-  localStorage.setItem("ULTIMATE", JSON.stringify(S));
-}
+/* 🔁 LOOP */
+setInterval(()=>{
+  S.score+=S.auto*S.multi;
+  update();
+},1000);
 
 /* 📊 UI */
 function update(){
   document.getElementById("score").innerText=Math.floor(S.score);
+  document.getElementById("stats").innerText=
+    `Click:${S.click} Multi:${S.multi} Auto:${S.auto}`;
 }
 
-setInterval(()=>{
-  S.score += S.auto*S.multi;
-  update();
-},1000);
+/* 💾 SAVE */
+function save(){
+  localStorage.setItem("FIXED_GAME",JSON.stringify(S));
+}
 
 update();
 
