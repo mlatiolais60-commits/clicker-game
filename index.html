@@ -2,233 +2,235 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>God Mode Clicker</title>
+<title>Matthew's Idle Clicker Game</title>
 
 <style>
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
+
 body {
   margin:0;
-  font-family: Arial;
-  background: radial-gradient(circle at top, #0a0a0a, #000);
+  font-family: 'Orbitron', sans-serif;
+  background: radial-gradient(circle at top, #1a1a2e, #000);
   color:white;
-  text-align:center;
   overflow:hidden;
 }
 
+/* 🌌 animated glow background */
+body::before {
+  content:"";
+  position:absolute;
+  width:100%;
+  height:100%;
+  background: radial-gradient(circle at 30% 30%, rgba(0,200,255,0.15), transparent 50%),
+              radial-gradient(circle at 70% 70%, rgba(255,0,150,0.12), transparent 55%);
+  animation: glowMove 8s infinite alternate;
+}
+
+@keyframes glowMove {
+  from { transform: scale(1); filter: blur(0px); }
+  to { transform: scale(1.2); filter: blur(2px); }
+}
+
+/* 🧊 main container */
+.game {
+  position:relative;
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  gap:12px;
+}
+
+/* 👑 TITLE (logo style) */
 .title {
-  font-size:26px;
-  margin-top:15px;
-  font-weight:bold;
-  text-shadow:0 0 10px #fff, 0 0 20px #00f;
+  font-size:22px;
+  letter-spacing:2px;
+  text-shadow:0 0 10px #00f, 0 0 25px #0ff;
+  margin-top:10px;
 }
 
+/* 💰 BIG COIN */
 #coin {
-  font-size:90px;
-  margin:10px;
+  font-size:110px;
+  filter: drop-shadow(0 0 15px gold);
+  transition: transform 0.1s;
 }
 
-/* 💎 3D BUTTON SYSTEM (ALL BUTTONS) */
+#coin:active {
+  transform: scale(0.92) rotate(-3deg);
+}
+
+/* 💎 stats */
+.stats {
+  font-size:16px;
+  opacity:0.9;
+}
+
+/* 🧊 glass panels */
+.panel {
+  width:90%;
+  max-width:360px;
+  padding:12px;
+  border-radius:18px;
+
+  background: rgba(255,255,255,0.06);
+  backdrop-filter: blur(10px);
+
+  box-shadow:
+    0 8px 30px rgba(0,0,0,0.6),
+    inset 0 0 20px rgba(255,255,255,0.05);
+
+  display:flex;
+  flex-wrap:wrap;
+  justify-content:center;
+  gap:8px;
+}
+
+/* 🔘 PREMIUM 3D BUTTONS */
 button {
   padding:12px 14px;
-  margin:6px;
   font-size:13px;
-  border-radius:14px;
   border:none;
+  border-radius:14px;
   color:white;
 
-  background: linear-gradient(145deg, #2b2b2b, #141414);
+  background: linear-gradient(145deg, #2f2f2f, #151515);
 
   box-shadow:
-    6px 6px 12px rgba(0,0,0,0.6),
-    -4px -4px 10px rgba(255,255,255,0.05),
-    inset 0 0 0 rgba(255,255,255,0);
+    0 6px 12px rgba(0,0,0,0.6),
+    inset 0 1px 1px rgba(255,255,255,0.1);
 
-  transform: translateY(0px);
+  transform: translateY(0);
   transition: all 0.12s ease;
-  cursor:pointer;
-
-  text-shadow:0 1px 2px rgba(0,0,0,0.8);
 }
 
-/* 🔥 PRESS EFFECT */
 button:active {
-  transform: translateY(4px) scale(0.98);
+  transform: translateY(4px) scale(0.97);
   box-shadow:
-    2px 2px 6px rgba(0,0,0,0.7),
-    inset 2px 2px 6px rgba(0,0,0,0.5);
+    0 2px 6px rgba(0,0,0,0.7),
+    inset 0 3px 6px rgba(0,0,0,0.5);
 }
 
-/* 🌌 LAYOUT */
-.panel { margin-top:10px; }
-
+/* ✨ floating text */
 .float {
   position:absolute;
-  animation: floatUp 1s linear forwards;
+  font-size:14px;
+  animation: floatUp 1s forwards;
 }
 
 @keyframes floatUp {
   from { transform: translateY(0); opacity:1; }
-  to { transform: translateY(-120px); opacity:0; }
+  to { transform: translateY(-100px); opacity:0; }
+}
+
+/* 📱 mobile polish */
+@media (max-width:400px){
+  #coin { font-size:90px; }
 }
 </style>
 </head>
 
 <body>
 
-<div class="title">👑 Matthew’s Idle Clicker — GOD MODE</div>
+<div class="game">
+
+<div class="title">👑 Matthew’s Idle Clicker Game</div>
 
 <div id="coin">💰</div>
 
 <h2 id="score">0</h2>
-<h3 id="gems">💎 0</h3>
+<div class="stats" id="stats">Loading...</div>
 
 <div class="panel">
 <button onclick="tap()">TAP</button>
 <button onclick="slot()">🎰 SLOT</button>
-<button onclick="bossHit()">🔥 BOSS</button>
+<button onclick="boss()">🔥 BOSS</button>
 </div>
 
 <div class="panel">
-<button onclick="upgrade('click')">Click+</button>
-<button onclick="upgrade('multi')">Multi+</button>
-<button onclick="upgrade('crit')">Crit+</button>
-<button onclick="upgrade('auto')">Auto+</button>
+<button onclick="up('click')">Click+</button>
+<button onclick="up('multi')">Multi+</button>
+<button onclick="up('auto')">Auto+</button>
+<button onclick="rebirth()">REBIRTH</button>
 </div>
 
-<div class="panel">
-<button onclick="prestige()">✨ REBIRTH</button>
-<button onclick="theme()">🎨 Theme</button>
 </div>
 
 <script>
 
-/* 💾 SAVE SYSTEM */
-let S = JSON.parse(localStorage.getItem("GODMODE")) || {
+let S = JSON.parse(localStorage.getItem("ULTRA_CLICKER")) || {
   score:0,
-  gems:0,
   click:1,
   multi:1,
-  crit:0.1,
   auto:0,
-  rebirth:0,
-  themes:0
+  rebirth:0
 };
 
-let boss = {hp:1000,max:1000,active:false};
+function save(){
+  localStorage.setItem("ULTRA_CLICKER", JSON.stringify(S));
+}
 
-/* ✨ FLOAT TEXT */
-function float(t){
+function float(txt){
   let e=document.createElement("div");
   e.className="float";
-  e.innerText=t;
-  e.style.left=(window.innerWidth/2+(Math.random()*60-30))+"px";
-  e.style.top="200px";
+  e.innerText=txt;
+  e.style.left=(window.innerWidth/2+(Math.random()*40-20))+"px";
+  e.style.top="250px";
   document.body.appendChild(e);
-  setTimeout(()=>e.remove(),800);
+  setTimeout(()=>e.remove(),900);
 }
 
 /* 🎮 TAP */
 function tap(){
   let gain = S.click * S.multi;
-
-  if(Math.random() < S.crit){
-    gain *= 5;
-    float("💥 CRIT "+gain);
-  } else {
-    float("+"+gain);
-  }
-
   S.score += gain;
-
-  if(Math.random()<0.02){
-    S.gems++;
-    float("💎 GEM!");
-  }
-
+  float("+"+gain);
   save(); update();
 }
 
 /* 🎰 SLOT */
 function slot(){
   let r=Math.random();
-
-  if(r>0.97){
-    S.gems+=10;
-    float("🟣 JACKPOT!");
-  }
-  else if(r>0.7){
-    S.score+=1000;
-    float("🟢 WIN +1000");
-  }
-  else {
-    S.score-=100;
-    float("🔴 LOSE -100");
-  }
-
+  if(r>0.9){ S.score+=1000; float("JACKPOT!"); }
+  else if(r>0.5){ S.score+=100; float("+100"); }
+  else { S.score-=50; float("-50"); }
   save(); update();
 }
 
 /* 🔥 BOSS */
-function bossHit(){
-  if(!boss.active){
-    boss.hp=boss.max;
-    boss.active=true;
-  }
-
-  let dmg=S.click*S.multi*2;
-  boss.hp-=dmg;
-
-  float("⚔️ "+dmg);
-
-  if(boss.hp<=0){
-    S.gems+=5;
-    S.score+=2000;
-    float("🏆 BOSS DOWN!");
-    boss.active=false;
-  }
-
+function boss(){
+  let dmg = S.click * S.multi * 5;
+  S.score += dmg;
+  float("BOSS HIT +" + dmg);
   save(); update();
 }
 
-/* ⬆️ UPGRADE */
-function upgrade(type){
-  let cost=100;
-  if(S.score<cost) return;
+/* ⬆️ UPGRADES */
+function up(type){
+  let cost = 100;
+  if(S.score < cost) return;
 
-  S.score-=cost;
+  S.score -= cost;
 
   if(type==="click") S.click++;
   if(type==="multi") S.multi+=0.5;
-  if(type==="crit") S.crit+=0.02;
   if(type==="auto") S.auto++;
 
-  float("⬆️ UPGRADED");
-
+  float("UPGRADED!");
   save(); update();
 }
 
 /* ✨ REBIRTH */
-function prestige(){
-  if(S.score<5000) return;
-
+function rebirth(){
+  if(S.score < 5000) return;
   S.score=0;
   S.click=1;
-  S.auto=0;
   S.multi+=1;
+  S.auto=0;
   S.rebirth++;
-
-  float("✨ REBIRTH!");
-
+  float("REBIRTH!");
   save(); update();
-}
-
-/* 🎨 THEMES */
-function theme(){
-  S.themes++;
-  document.body.style.background =
-    S.themes%2 ?
-    "radial-gradient(circle at top,#111,#000)" :
-    "radial-gradient(circle at top,#001,#000)";
-  save();
 }
 
 /* 🔁 LOOP */
@@ -239,13 +241,9 @@ setInterval(()=>{
 
 /* 📊 UI */
 function update(){
-  document.getElementById("score").innerText=Math.floor(S.score);
-  document.getElementById("gems").innerText="💎 "+S.gems;
-}
-
-/* 💾 SAVE */
-function save(){
-  localStorage.setItem("GODMODE", JSON.stringify(S));
+  document.getElementById("score").innerText = Math.floor(S.score);
+  document.getElementById("stats").innerText =
+    `Click:${S.click} Multi:${S.multi} Auto:${S.auto} Rebirth:${S.rebirth}`;
 }
 
 update();
