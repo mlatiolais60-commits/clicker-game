@@ -21,15 +21,44 @@ body {
   text-shadow:0 0 10px #fff, 0 0 20px #00f;
 }
 
-#coin { font-size:90px; margin:10px; }
-
-.panel button {
-  padding:10px;
-  margin:4px;
-  font-size:12px;
-  border-radius:10px;
-  border:none;
+#coin {
+  font-size:90px;
+  margin:10px;
 }
+
+/* 💎 3D BUTTON SYSTEM (ALL BUTTONS) */
+button {
+  padding:12px 14px;
+  margin:6px;
+  font-size:13px;
+  border-radius:14px;
+  border:none;
+  color:white;
+
+  background: linear-gradient(145deg, #2b2b2b, #141414);
+
+  box-shadow:
+    6px 6px 12px rgba(0,0,0,0.6),
+    -4px -4px 10px rgba(255,255,255,0.05),
+    inset 0 0 0 rgba(255,255,255,0);
+
+  transform: translateY(0px);
+  transition: all 0.12s ease;
+  cursor:pointer;
+
+  text-shadow:0 1px 2px rgba(0,0,0,0.8);
+}
+
+/* 🔥 PRESS EFFECT */
+button:active {
+  transform: translateY(4px) scale(0.98);
+  box-shadow:
+    2px 2px 6px rgba(0,0,0,0.7),
+    inset 2px 2px 6px rgba(0,0,0,0.5);
+}
+
+/* 🌌 LAYOUT */
+.panel { margin-top:10px; }
 
 .float {
   position:absolute;
@@ -39,20 +68,6 @@ body {
 @keyframes floatUp {
   from { transform: translateY(0); opacity:1; }
   to { transform: translateY(-120px); opacity:0; }
-}
-
-#bossBar {
-  width:80%;
-  height:10px;
-  background:#222;
-  margin:10px auto;
-  border-radius:10px;
-}
-
-#bossHP {
-  height:10px;
-  background:red;
-  width:100%;
 }
 </style>
 </head>
@@ -84,25 +99,23 @@ body {
 <button onclick="theme()">🎨 Theme</button>
 </div>
 
-<div id="bossBar"><div id="bossHP"></div></div>
-
-<p id="stats"></p>
-<p id="achievements"></p>
-<p id="leader"></p>
-
 <script>
 
-// ---------------- SAVE ----------------
+/* 💾 SAVE SYSTEM */
 let S = JSON.parse(localStorage.getItem("GODMODE")) || {
-  score:0,gems:0,
-  click:1,multi:1,crit:0.1,auto:0,
+  score:0,
+  gems:0,
+  click:1,
+  multi:1,
+  crit:0.1,
+  auto:0,
   rebirth:0,
   themes:0
 };
 
 let boss = {hp:1000,max:1000,active:false};
 
-// ---------------- FX ----------------
+/* ✨ FLOAT TEXT */
 function float(t){
   let e=document.createElement("div");
   e.className="float";
@@ -113,7 +126,7 @@ function float(t){
   setTimeout(()=>e.remove(),800);
 }
 
-// ---------------- CORE CLICK ----------------
+/* 🎮 TAP */
 function tap(){
   let gain = S.click * S.multi;
 
@@ -134,13 +147,13 @@ function tap(){
   save(); update();
 }
 
-// ---------------- SLOT MACHINE ----------------
+/* 🎰 SLOT */
 function slot(){
-  let r = Math.random();
+  let r=Math.random();
 
   if(r>0.97){
     S.gems+=10;
-    float("🟣 JACKPOT +10 GEMS");
+    float("🟣 JACKPOT!");
   }
   else if(r>0.7){
     S.score+=1000;
@@ -154,37 +167,34 @@ function slot(){
   save(); update();
 }
 
-// ---------------- BOSS ----------------
-function bossStart(){
-  boss.hp = boss.max;
-  boss.active = true;
-}
-
+/* 🔥 BOSS */
 function bossHit(){
-  if(!boss.active) bossStart();
+  if(!boss.active){
+    boss.hp=boss.max;
+    boss.active=true;
+  }
 
-  let dmg = S.click * S.multi * 2;
-  boss.hp -= dmg;
+  let dmg=S.click*S.multi*2;
+  boss.hp-=dmg;
 
   float("⚔️ "+dmg);
 
-  if(boss.hp <= 0){
-    S.gems += 5;
-    S.score += 2000;
+  if(boss.hp<=0){
+    S.gems+=5;
+    S.score+=2000;
     float("🏆 BOSS DOWN!");
-    boss.active = false;
+    boss.active=false;
   }
 
-  update();
+  save(); update();
 }
 
-// ---------------- UPGRADE SYSTEM ----------------
+/* ⬆️ UPGRADE */
 function upgrade(type){
-  let cost = 100;
+  let cost=100;
+  if(S.score<cost) return;
 
-  if(S.score < cost) return;
-
-  S.score -= cost;
+  S.score-=cost;
 
   if(type==="click") S.click++;
   if(type==="multi") S.multi+=0.5;
@@ -192,24 +202,26 @@ function upgrade(type){
   if(type==="auto") S.auto++;
 
   float("⬆️ UPGRADED");
+
   save(); update();
 }
 
-// ---------------- PRESTIGE ----------------
+/* ✨ REBIRTH */
 function prestige(){
-  if(S.score < 5000) return;
+  if(S.score<5000) return;
 
   S.score=0;
   S.click=1;
   S.auto=0;
-  S.multi += 1;
+  S.multi+=1;
   S.rebirth++;
 
-  float("✨ REBIRTH COMPLETE");
+  float("✨ REBIRTH!");
+
   save(); update();
 }
 
-// ---------------- THEMES ----------------
+/* 🎨 THEMES */
 function theme(){
   S.themes++;
   document.body.style.background =
@@ -219,41 +231,19 @@ function theme(){
   save();
 }
 
-// ---------------- LOOP ----------------
+/* 🔁 LOOP */
 setInterval(()=>{
   S.score += S.auto * S.multi;
-
-  if(boss.active){
-    document.getElementById("bossHP").style.width =
-      (boss.hp/boss.max*100)+"%";
-  } else {
-    document.getElementById("bossHP").style.width="0%";
-  }
-
   update();
 },1000);
 
-// ---------------- UI ----------------
+/* 📊 UI */
 function update(){
-  document.getElementById("score").innerText = Math.floor(S.score);
-  document.getElementById("gems").innerText = "💎 "+S.gems;
-
-  document.getElementById("stats").innerText =
-    `Click:${S.click} Multi:${S.multi} Crit:${(S.crit*100).toFixed(1)}% Auto:${S.auto} Rebirth:${S.rebirth}`;
-
-  // fake leaderboard (local)
-  document.getElementById("leader").innerText =
-    "🏆 Rank: #" + Math.max(1, 1000 - Math.floor(S.score/1000));
-
-  let ach="";
-  if(S.score>10000) ach+="💰 Rich ";
-  if(S.gems>20) ach+="💎 Collector ";
-  if(S.rebirth>3) ach+="👑 Ascended ";
-
-  document.getElementById("achievements").innerText = ach;
+  document.getElementById("score").innerText=Math.floor(S.score);
+  document.getElementById("gems").innerText="💎 "+S.gems;
 }
 
-// ---------------- SAVE ----------------
+/* 💾 SAVE */
 function save(){
   localStorage.setItem("GODMODE", JSON.stringify(S));
 }
