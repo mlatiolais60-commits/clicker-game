@@ -13,14 +13,15 @@ body {
   overflow:hidden;
 }
 
-/* 🌌 background */
+/* 🌌 BACKGROUND */
 body::before {
   content:"";
   position:absolute;
   width:100%;
   height:100%;
-  background: radial-gradient(circle at 30% 30%, rgba(0,255,255,0.15), transparent 40%),
-              radial-gradient(circle at 70% 70%, rgba(255,0,150,0.12), transparent 40%);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(0,255,255,0.15), transparent 40%),
+    radial-gradient(circle at 70% 70%, rgba(255,0,150,0.12), transparent 40%);
 }
 
 /* 🎬 INTRO */
@@ -33,12 +34,17 @@ body::before {
   justify-content:center;
   align-items:center;
   z-index:10;
+  background:black;
 }
 
 #title {
   font-size:22px;
-  text-align:center;
   text-shadow:0 0 15px cyan;
+}
+
+#tapStart {
+  margin-top:10px;
+  opacity:0.7;
 }
 
 /* 🎮 GAME */
@@ -50,11 +56,7 @@ body::before {
   align-items:center;
 }
 
-.active {display:flex;}
-
-#coin {
-  font-size:100px;
-}
+#coin { font-size:100px; }
 
 button {
   padding:12px;
@@ -65,14 +67,14 @@ button {
   color:white;
 }
 
-/* 💥 FLOAT */
+/* 💥 FLOAT TEXT */
 .float {
   position:absolute;
   animation: floatUp 1s forwards;
 }
 @keyframes floatUp {
-  from{opacity:1;transform:translateY(0);}
-  to{opacity:0;transform:translateY(-120px);}
+  from {opacity:1; transform:translateY(0);}
+  to {opacity:0; transform:translateY(-120px);}
 }
 </style>
 </head>
@@ -82,7 +84,7 @@ button {
 <!-- 🎬 INTRO -->
 <div id="intro">
   <div id="title">👑 Matthew's Idle Clicker Game</div>
-  <p>👆 Tap anywhere to play</p>
+  <div id="tapStart">👆 Tap anywhere to start</div>
 </div>
 
 <!-- 🎮 GAME -->
@@ -91,33 +93,39 @@ button {
   <div id="coin">💰</div>
   <h2 id="score">0</h2>
 
-  <button onclick="tap()">TAP</button>
-  <button onclick="crit()">CRIT</button>
-  <button onclick="slot()">SLOT</button>
-  <button onclick="boss()">BOSS</button>
+  <button id="tapBtn">TAP</button>
+  <button id="critBtn">CRIT</button>
+  <button id="slotBtn">SLOT</button>
+  <button id="bossBtn">BOSS</button>
 
 </div>
 
 <script>
 
+/* 🧠 GAME STATE */
 let S = {
   score:0,
   click:1,
   multi:1,
-  auto:0
+  auto:0,
+  started:false
 };
 
-/* 🚀 SAFE START (FIXED FOR iOS) */
+/* 🚀 START GAME (SAFE - NO CONFLICTS) */
 function startGame(){
+  if(S.started) return;
+  S.started = true;
+
   document.getElementById("intro").style.display="none";
   document.getElementById("game").style.display="flex";
+
+  console.log("Game Started");
 }
 
-/* 👆 MULTI-INPUT SUPPORT */
-document.addEventListener("click", startGame, { once:true });
-document.addEventListener("touchstart", startGame, { once:true });
+/* 👆 ONLY INTRO LISTENER (DO NOT BLOCK BUTTONS) */
+document.getElementById("intro").addEventListener("pointerdown", startGame);
 
-/* 💥 FLOAT */
+/* 💥 FLOAT TEXT */
 function float(t){
   let e=document.createElement("div");
   e.className="float";
@@ -128,18 +136,16 @@ function float(t){
   setTimeout(()=>e.remove(),900);
 }
 
-/* 🎮 FUNCTIONS */
+/* 🎮 GAME FUNCTIONS */
 function tap(){
-  let g=S.click*S.multi;
-  S.score+=g;
-  float("+"+g);
+  S.score += S.click*S.multi;
+  float("+"+(S.click*S.multi));
   update();
 }
 
 function crit(){
-  let g=S.click*S.multi*5;
-  S.score+=g;
-  float("💥 "+g);
+  S.score += S.click*S.multi*5;
+  float("💥 CRIT");
   update();
 }
 
@@ -152,9 +158,8 @@ function slot(){
 }
 
 function boss(){
-  let g=S.click*S.multi*10;
-  S.score+=g;
-  float("BOSS "+g);
+  S.score += S.click*S.multi*10;
+  float("BOSS HIT");
   update();
 }
 
@@ -163,8 +168,15 @@ function update(){
   document.getElementById("score").innerText=Math.floor(S.score);
 }
 
+/* 🔁 BUTTON WIRING (IMPORTANT FIX) */
+document.getElementById("tapBtn").onclick = tap;
+document.getElementById("critBtn").onclick = crit;
+document.getElementById("slotBtn").onclick = slot;
+document.getElementById("bossBtn").onclick = boss;
+
+/* ⏱ IDLE */
 setInterval(()=>{
-  S.score+=S.auto*S.multi;
+  S.score += S.auto*S.multi;
   update();
 },1000);
 
