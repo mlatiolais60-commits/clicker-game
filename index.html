@@ -5,34 +5,25 @@
 <title>Matthew's Idle Clicker</title>
 
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap');
-
 body {
   margin:0;
-  font-family:Orbitron;
+  font-family:Arial;
   background:black;
   color:white;
   overflow:hidden;
 }
 
-/* 🌌 animated bg */
+/* 🌌 background */
 body::before {
   content:"";
   position:absolute;
   width:100%;
   height:100%;
-  background:
-    radial-gradient(circle at 30% 30%, rgba(0,255,255,0.15), transparent 40%),
-    radial-gradient(circle at 70% 70%, rgba(255,0,150,0.12), transparent 40%);
-  animation:bg 6s infinite alternate;
+  background: radial-gradient(circle at 30% 30%, rgba(0,255,255,0.15), transparent 40%),
+              radial-gradient(circle at 70% 70%, rgba(255,0,150,0.12), transparent 40%);
 }
 
-@keyframes bg {
-  from{transform:scale(1);}
-  to{transform:scale(1.2);}
-}
-
-/* 🎬 intro */
+/* 🎬 INTRO */
 #intro {
   position:absolute;
   width:100%;
@@ -44,20 +35,13 @@ body::before {
   z-index:10;
 }
 
-.letter {
-  display:inline-block;
-  font-size:26px;
-  opacity:0;
-  transform:translateY(-60px);
-  animation:drop 0.5s forwards;
+#title {
+  font-size:22px;
+  text-align:center;
   text-shadow:0 0 15px cyan;
 }
 
-@keyframes drop {
-  to{opacity:1;transform:translateY(0);}
-}
-
-/* 🎮 game */
+/* 🎮 GAME */
 #game {
   display:none;
   height:100vh;
@@ -69,50 +53,26 @@ body::before {
 .active {display:flex;}
 
 #coin {
-  font-size:110px;
-  filter:drop-shadow(0 0 15px gold);
-  transition:0.1s;
+  font-size:100px;
 }
-#coin:active {transform:scale(0.9);}
 
-/* 🔘 buttons */
 button {
-  padding:12px 14px;
+  padding:12px;
   margin:6px;
   border:none;
-  border-radius:12px;
+  border-radius:10px;
+  background:#222;
   color:white;
-  background:linear-gradient(145deg,#2b2b2b,#111);
-  box-shadow:0 6px 20px rgba(0,0,0,0.6);
-  transition:0.1s;
-}
-button:active {transform:translateY(3px);}
-
-/* 📦 panels */
-.panel {
-  display:flex;
-  flex-wrap:wrap;
-  justify-content:center;
-  max-width:420px;
 }
 
-/* 💥 float */
+/* 💥 FLOAT */
 .float {
   position:absolute;
-  animation:floatUp 1s forwards;
+  animation: floatUp 1s forwards;
 }
 @keyframes floatUp {
   from{opacity:1;transform:translateY(0);}
   to{opacity:0;transform:translateY(-120px);}
-}
-
-/* 📳 shake */
-.shake {animation:shake 0.2s;}
-@keyframes shake {
-  0%{transform:translate(0);}
-  25%{transform:translate(-4px,4px);}
-  50%{transform:translate(4px,-4px);}
-  100%{transform:translate(0);}
 }
 </style>
 </head>
@@ -121,166 +81,92 @@ button:active {transform:translateY(3px);}
 
 <!-- 🎬 INTRO -->
 <div id="intro">
-  <div id="title"></div>
+  <div id="title">👑 Matthew's Idle Clicker Game</div>
   <p>👆 Tap anywhere to play</p>
 </div>
 
 <!-- 🎮 GAME -->
 <div id="game">
 
-  <h3>👑 Matthew's Idle Clicker</h3>
-
   <div id="coin">💰</div>
   <h2 id="score">0</h2>
-  <h4 id="stats"></h4>
 
-  <!-- 🎮 MAIN ACTIONS -->
-  <div class="panel">
-    <button onclick="tap()">TAP</button>
-    <button onclick="crit()">CRIT</button>
-    <button onclick="slot()">SLOT</button>
-    <button onclick="boss()">BOSS</button>
-  </div>
-
-  <!-- 🛒 UPGRADES -->
-  <div class="panel">
-    <button onclick="buy('click')">Click+</button>
-    <button onclick="buy('multi')">Multi+</button>
-    <button onclick="buy('auto')">Auto+</button>
-    <button onclick="rebirth()">REBIRTH</button>
-  </div>
+  <button onclick="tap()">TAP</button>
+  <button onclick="crit()">CRIT</button>
+  <button onclick="slot()">SLOT</button>
+  <button onclick="boss()">BOSS</button>
 
 </div>
 
 <script>
 
-/* 🧠 STATE */
-let S = JSON.parse(localStorage.getItem("FIXED_GAME")) || {
+let S = {
   score:0,
   click:1,
   multi:1,
   auto:0
 };
 
-/* 🎬 TITLE BUILD */
-let name="MATTHEW'S IDLE CLICKER";
-let i=0;
-let title=document.getElementById("title");
-
-function build(){
-  if(i<name.length){
-    let s=document.createElement("span");
-    s.className="letter";
-    s.style.animationDelay=(i*0.05)+"s";
-    s.innerText=name[i];
-    title.appendChild(s);
-    i++;
-    setTimeout(build,60);
-  }
-}
-build();
-
-/* 👆 START */
-document.body.onclick=start;
-function start(){
+/* 🚀 SAFE START (FIXED FOR iOS) */
+function startGame(){
   document.getElementById("intro").style.display="none";
-  document.getElementById("game").classList.add("active");
-  document.body.onclick=null;
+  document.getElementById("game").style.display="flex";
 }
+
+/* 👆 MULTI-INPUT SUPPORT */
+document.addEventListener("click", startGame, { once:true });
+document.addEventListener("touchstart", startGame, { once:true });
 
 /* 💥 FLOAT */
 function float(t){
   let e=document.createElement("div");
   e.className="float";
   e.innerText=t;
-  e.style.left=window.innerWidth/2+"px";
+  e.style.left=(window.innerWidth/2)+"px";
   e.style.top="200px";
   document.body.appendChild(e);
   setTimeout(()=>e.remove(),900);
 }
 
-/* 🎮 TAP */
+/* 🎮 FUNCTIONS */
 function tap(){
   let g=S.click*S.multi;
   S.score+=g;
   float("+"+g);
-  save(); update();
+  update();
 }
 
-/* 💥 CRIT */
 function crit(){
   let g=S.click*S.multi*5;
   S.score+=g;
   float("💥 "+g);
-  shake();
-  save(); update();
+  update();
 }
 
-/* 🎰 SLOT */
 function slot(){
   let r=Math.random();
   if(r>0.9){S.score+=1000;float("JACKPOT!");}
   else if(r>0.5){S.score+=200;float("+200");}
   else {S.score-=100;float("-100");}
-  save(); update();
+  update();
 }
 
-/* 🔥 BOSS */
 function boss(){
   let g=S.click*S.multi*10;
   S.score+=g;
   float("BOSS "+g);
-  shake();
-  save(); update();
-}
-
-/* 🛒 BUY */
-function buy(t){
-  if(S.score<100) return;
-  S.score-=100;
-
-  if(t==="click") S.click++;
-  if(t==="multi") S.multi+=0.5;
-  if(t==="auto") S.auto++;
-
-  float("UPGRADED");
-  save(); update();
-}
-
-/* ✨ REBIRTH */
-function rebirth(){
-  if(S.score<5000) return;
-  S.score=0;
-  S.click=1;
-  S.multi+=1;
-  S.auto=0;
-  float("REBIRTH!");
-  save(); update();
-}
-
-/* 📳 SHAKE */
-function shake(){
-  document.body.classList.add("shake");
-  setTimeout(()=>document.body.classList.remove("shake"),200);
-}
-
-/* 🔁 LOOP */
-setInterval(()=>{
-  S.score+=S.auto*S.multi;
   update();
-},1000);
+}
 
 /* 📊 UI */
 function update(){
   document.getElementById("score").innerText=Math.floor(S.score);
-  document.getElementById("stats").innerText=
-    `Click:${S.click} Multi:${S.multi} Auto:${S.auto}`;
 }
 
-/* 💾 SAVE */
-function save(){
-  localStorage.setItem("FIXED_GAME",JSON.stringify(S));
-}
+setInterval(()=>{
+  S.score+=S.auto*S.multi;
+  update();
+},1000);
 
 update();
 
